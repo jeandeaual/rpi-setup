@@ -1,0 +1,61 @@
+- name: Rename user
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars_files:
+    - ../vars/main.yaml
+
+  handlers:
+    - name: Restart sshd
+      ansible.builtin.service:
+        name: ssh
+        state: restarted
+
+  tasks:
+    - name: Install SSH key for root access
+      ansible.posix.authorized_key:
+        user: root
+        key: "{{ ssh_key }}"
+        state: present
+      remote_user: "{{ ansible_user_id }}"
+
+    - name: Make sure root can SSH in
+      ansible.builtin.lineinfile:
+        dest: /etc/ssh/sshd_config
+        backup: true
+        regexp: "^PermitRootLogin"
+        line: PermitRootLogin prohibit-password
+        state: present
+      remote_user: "{{ ansible_user_id }}"
+      register: sshd_config
+      notify: Restart sshd
+
+    - name: Kill processes by user
+      ansible.builtin.command: pkill -u "{{ ansible_user_id }}"
+      remote_user: root
+      register: pkill_output
+      changed_when: pkill_output.rc != 1
+
+    - name: Move home directory
+      ansible.builtin.user:
+        name: "{{ ansible_user_id }}"
+        home: /home/{{ new_username }}
+        move_home: true
+      remote_user: root
+
+    - name: Rename user
+      ansible.builtin.command: usermod --login "{{ new_username }}" "{{ ansible_user_id }}"
+      remote_user: root
+      register: usermod_output
+      changed_when: usermod_output.rc == 0
+      failed_when: usermod_output.rc != 0
+
+    - name: Restore sshd config
+      ansible.builtin.copy:
+        remote_src: true
+        src: "{{ sshd_config.backup }}"
+        dest: /etc/ssh/sshd_config
+        mode: preserve
+      remote_user: root
+      notify: Restart sshd

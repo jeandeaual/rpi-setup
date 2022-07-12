@@ -1,0 +1,11 @@
+- name: Enable Raspberry Pi PoE HAT
+  hosts: all
+  gather_facts: true
+
+  vars_files:
+    - ../vars/main.yaml
+
+  tasks:
+    - ansible.builtin.import_tasks: ../tasks/insert-update-poe-hat-config.yaml
+      vars:
+        dtoverlay: rpi-poe

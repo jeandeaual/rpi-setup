@@ -1,0 +1,7 @@
+{
+  "files.associations": {
+    "**/inventory/*": "ini",
+    "**/inventory/*.yaml": "yaml",
+    "**/inventory/*.yml": "yaml"
+  }
+}

@@ -1,0 +1,65 @@
+- name: Install the Raspberry Pi kernel
+  become: true
+  community.general.pacman:
+    name:
+      - linux-rpi
+      - raspberrypi-firmware
+    state: present
+    # The "linux-rpi" package conflicts with the default kernel
+    # Change the default answer from N to Y when a conflict happens
+    # https://unix.stackexchange.com/a/584001
+    extra_args: --ask 4
+  # The Raspberry Pi kernel is required to enable the PoE HAT on Arch Linux ARM
+  when: ansible_distribution == 'Archlinux'
+
+- name: Make sure the other type of PoE HAT is not enabled
+  become: true
+  ansible.builtin.lineinfile:
+    path: /boot/config.txt
+    line: "dtoverlay={{ 'rpi-poe-plus' if dtoverlay == 'rpi-poe' else 'rpi-poe' }}"
+    state: absent
+
+- name: Enable PoE HAT in /boot/config.txt
+  become: true
+  ansible.builtin.lineinfile:
+    path: /boot/config.txt
+    create: true
+    owner: root
+    group: root
+    mode: "755"
+    line: dtoverlay={{ dtoverlay }}
+    insertbefore: ^\[.*\]
+    firstmatch: true
+    state: present
+
+- name: Insert the PoE HAT fan curves
+  become: true
+  ansible.builtin.blockinfile:
+    path: /boot/config.txt
+    insertafter: dtoverlay={{ dtoverlay }}
+    block: |
+      dtparam=poe_fan_temp0=10000,poe_fan_temp0_hyst=1000
+      dtparam=poe_fan_temp1=55000,poe_fan_temp1_hyst=5000
+      dtparam=poe_fan_temp2=60000,poe_fan_temp2_hyst=5000
+      dtparam=poe_fan_temp3=65000,poe_fan_temp3_hyst=5000
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+    state: present
+
+- name: Remove all other fan curves (1)
+  become: true
+  ansible.builtin.replace:
+    path: /boot/config.txt
+    before: dtoverlay={{ dtoverlay }}
+    regexp: ^dtparam=poe_fan_temp.*\n
+    replace: ""
+
+- name: Remove all other fan curves (2)
+  become: true
+  ansible.builtin.replace:
+    path: /boot/config.txt
+    after: "# END ANSIBLE MANAGED BLOCK"
+    regexp: ^dtparam=poe_fan_temp.*\n
+    replace: ""
+
+# - name: Reboot the machine
+#   ansible.builtin.reboot:

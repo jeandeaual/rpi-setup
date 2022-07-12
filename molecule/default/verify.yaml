@@ -1,0 +1,21 @@
+- name: Verify
+  hosts: all
+
+  tasks:
+    - name: Check if /boot/config.txt exists
+      ansible.builtin.stat:
+        path: /boot/config.txt
+      register: boot_config
+
+    - name: Assert that the config file exists
+      ansible.builtin.assert:
+        that: boot_config.stat.exists
+
+    - name: Assert that /boot/config.txt contains dtparam=rpi-poe
+      ansible.builtin.lineinfile:
+        path: /tmp/my.conf
+        line: dtparam=rpi-poe
+        state: present
+      check_mode: true
+      register: dtparam_presence
+      failed_when: dtparam_presence.changed
