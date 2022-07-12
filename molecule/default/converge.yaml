@@ -1,6 +1,0 @@
-- name: Converge
-  hosts: all
-
-- ansible.builtin.import_playbook: ../../playbooks/enable-poe-hat.yaml
-# - ansible.builtin.import_playbook: ../../playbooks/enable-poe-hat-plus.yaml
-# - ansible.builtin.import_playbook: ../../playbooks/rename-user.yaml

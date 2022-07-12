@@ -11,11 +11,11 @@
       ansible.builtin.assert:
         that: boot_config.stat.exists
 
-    - name: Assert that /boot/config.txt contains dtparam=rpi-poe
+    - name: Assert that /boot/config.txt contains dtparam=rpi-poe-plus
       ansible.builtin.lineinfile:
-        path: /tmp/my.conf
-        line: dtparam=rpi-poe
+        path: /boot/config.txt
+        line: dtoverlay=rpi-poe-plus
         state: present
       check_mode: true
-      register: dtparam_presence
-      failed_when: dtparam_presence.changed
+      register: dtoverlay_presence
+      failed_when: dtoverlay_presence.changed

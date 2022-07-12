@@ -22,11 +22,11 @@ provisioner:
     # create: create.yaml
     converge: converge.yaml
     # destroy: destroy.yaml
-    prepare: prepare.yaml
+    # prepare: prepare.yaml
     # side_effect: side_effect.yaml
     verify: verify.yaml
 scenario:
-  name: default
+  name: poe-hat-plus
 verifier:
   name: ansible
 dependency:

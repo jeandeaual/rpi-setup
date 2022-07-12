@@ -1,0 +1,21 @@
+- name: Verify
+  hosts: all
+
+  tasks:
+    - name: Check if /boot/config.txt exists
+      ansible.builtin.stat:
+        path: /boot/config.txt
+      register: boot_config
+
+    - name: Assert that the config file exists
+      ansible.builtin.assert:
+        that: boot_config.stat.exists
+
+    - name: Assert that /boot/config.txt contains dtparam=rpi-poe
+      ansible.builtin.lineinfile:
+        path: /boot/config.txt
+        line: dtoverlay=rpi-poe
+        state: present
+      check_mode: true
+      register: dtoverlay_presence
+      failed_when: dtoverlay_presence.changed

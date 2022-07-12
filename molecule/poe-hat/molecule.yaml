@@ -1,0 +1,36 @@
+driver:
+  name: docker
+lint: |
+  set -e
+  yamllint .
+  ansible-lint
+platforms:
+  # We need an Arch Linux image with Python 3 and the "linux-rpi" and "raspberrypi-firmware"
+  # packages available in order to test the playbooks
+  # - name: archlinux
+  #   image: archlinux:latest
+  - name: debian-bullseye
+    image: debian:bullseye
+  - name: debian-buster
+    image: debian:buster
+  - name: ubuntu-22.04
+    image: ubuntu:22.04
+provisioner:
+  name: ansible
+  playbooks:
+    # cleanup: cleanup.yaml
+    # create: create.yaml
+    converge: converge.yaml
+    # destroy: destroy.yaml
+    # prepare: prepare.yaml
+    # side_effect: side_effect.yaml
+    verify: verify.yaml
+scenario:
+  name: poe-hat
+verifier:
+  name: ansible
+dependency:
+  name: galaxy
+  options:
+    role-file: requirements.yaml
+    requirements-file: requirements.yaml

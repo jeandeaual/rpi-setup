@@ -1,0 +1,4 @@
+- name: Converge
+  hosts: all
+
+- ansible.builtin.import_playbook: ../../playbooks/enable-poe-hat-plus.yaml

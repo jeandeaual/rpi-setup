@@ -35,11 +35,12 @@ jobs:
             "
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: |
-          poetry install --no-interaction --no-root
-          poetry run ansible-galaxy install -r requirements.yaml
+        run: poetry install --no-interaction --no-root
+      # TODO: this shouldn't be necessary since this is executed by Molecule
+      - name: Install Ansible collections and roles
+        run: poetry run ansible-galaxy install -r requirements.yaml
       - name: Molecule test
-        run: poetry run molecule test
+        run: poetry run molecule test --all
         env:
           PY_COLORS: 1
           ANSIBLE_FORCE_COLOR: 1
