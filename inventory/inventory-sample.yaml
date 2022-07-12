@@ -1,0 +1,16 @@
+all:
+  hosts:
+    pi1:
+      # Raspberry Pi OS
+      ansible_host: 192.168.1.1
+      ansible_ssh_user: pi
+      ansible_password: raspberry
+    pi2:
+      # Ubuntu
+      ansible_host: 192.168.1.2
+      ansible_ssh_user: ubuntu
+      ansible_password: ubuntu
+    pi3:
+      # ArchlinuxARM
+      ansible_host: 192.168.1.3
+      ansible_ssh_user: alarm
