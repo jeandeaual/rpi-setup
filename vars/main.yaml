@@ -1,2 +1,4 @@
+rpi_boot_config_file: /boot/config.txt
+# reboot: true
 new_username: alexis
 ssh_key: "{{ lookup('file', '../ssh/id_ed25519.pub') }}"

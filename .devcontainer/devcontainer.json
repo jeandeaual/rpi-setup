@@ -19,13 +19,9 @@
 
   "remoteEnv": {
     "PATH": "${containerEnv:PATH}:/home/vscode/.local/bin",
-    "POETRY_VIRTUALENVS_CREATE": "true"
+    "POETRY_VIRTUALENVS_CREATE": "true",
+    "MOLECULE_GLOB": "molecule/*/molecule.yaml"
   },
-
-  "runArgs": [
-    "--env-file",
-    ".env"
-  ],
 
   "mounts": [
     "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"

@@ -1,5 +1,4 @@
 - name: Install the Raspberry Pi kernel
-  become: true
   community.general.pacman:
     name:
       - linux-rpi
@@ -9,20 +8,21 @@
     # Change the default answer from N to Y when a conflict happens
     # https://unix.stackexchange.com/a/584001
     extra_args: --ask 4
+  become: true
   # The Raspberry Pi kernel is required to enable the PoE HAT on Arch Linux ARM
   when: ansible_distribution == 'Archlinux'
 
 - name: Make sure the other type of PoE HAT is not enabled
-  become: true
   ansible.builtin.lineinfile:
-    path: /boot/config.txt
+    path: "{{ rpi_boot_config_file }}"
     line: "dtoverlay={{ 'rpi-poe-plus' if dtoverlay == 'rpi-poe' else 'rpi-poe' }}"
     state: absent
-
-- name: Enable PoE HAT in /boot/config.txt
   become: true
+  register: boot_config_modified_remove_dtoverlay
+
+- name: Enable PoE HAT in {{ rpi_boot_config_file }}
   ansible.builtin.lineinfile:
-    path: /boot/config.txt
+    path: "{{ rpi_boot_config_file }}"
     create: true
     owner: root
     group: root
@@ -31,11 +31,12 @@
     insertbefore: ^\[.*\]
     firstmatch: true
     state: present
+  become: true
+  register: boot_config_modified_add_dtoverlay
 
 - name: Insert the PoE HAT fan curves
-  become: true
   ansible.builtin.blockinfile:
-    path: /boot/config.txt
+    path: "{{ rpi_boot_config_file }}"
     insertafter: dtoverlay={{ dtoverlay }}
     block: |
       dtparam=poe_fan_temp0=10000,poe_fan_temp0_hyst=1000
@@ -44,22 +45,37 @@
       dtparam=poe_fan_temp3=65000,poe_fan_temp3_hyst=5000
     marker: "# {mark} ANSIBLE MANAGED BLOCK"
     state: present
+  become: true
+  register: boot_config_modified_add_curves
 
 - name: Remove all other fan curves (1)
-  become: true
   ansible.builtin.replace:
-    path: /boot/config.txt
+    path: "{{ rpi_boot_config_file }}"
     before: dtoverlay={{ dtoverlay }}
     regexp: ^dtparam=poe_fan_temp.*\n
     replace: ""
+  become: true
+  register: boot_config_modified_remove1
 
 - name: Remove all other fan curves (2)
-  become: true
   ansible.builtin.replace:
-    path: /boot/config.txt
+    path: "{{ rpi_boot_config_file }}"
     after: "# END ANSIBLE MANAGED BLOCK"
     regexp: ^dtparam=poe_fan_temp.*\n
     replace: ""
+  become: true
+  register: boot_config_modified_remove2
 
-# - name: Reboot the machine
-#   ansible.builtin.reboot:
+- name: Reboot the machine
+  ansible.builtin.reboot:
+    msg: Reboot by Ansible because {{ rpi_boot_config_file }} was modified
+    reboot_timeout: 300
+  become: true
+  when: >-
+    reboot | default(True) and (
+      boot_config_modified_remove_dtoverlay.changed or
+      boot_config_modified_add_dtoverlay.changed or
+      boot_config_modified_add_curves.changed or
+      boot_config_modified_remove1.changed or
+      boot_config_modified_remove2.changed
+    )

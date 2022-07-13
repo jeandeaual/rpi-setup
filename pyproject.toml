@@ -1,9 +1,10 @@
 [tool.poetry]
-name = "ansible-vagrant-k8s"
+name = "rpi-setup"
 version = "1.0.0"
 description = ""
 authors = ["Alexis Jeandeau <alexis.jeandeau@gmail.com>"]
 license = "MIT"
+classifiers = ["Private :: Do Not Upload"]
 
 [tool.poetry.dependencies]
 python = "^3.8"

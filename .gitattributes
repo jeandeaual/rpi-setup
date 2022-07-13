@@ -1,0 +1,3 @@
+*.yaml linguist-detectable
+*.sh linguist-detectable
+Dockerfile -linguist-detectable

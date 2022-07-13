@@ -36,8 +36,24 @@ jobs:
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --no-root
-      # TODO: this shouldn't be necessary since this is executed by Molecule
+      # Required by ansible-lint
+      - name: Load cached collections
+        id: cached-ansible-collections
+        uses: actions/cache@v3
+        with:
+          path: collections
+          key: ansible-collections-${{ hashFiles('**/requirements.yaml') }}
+      # - name: Load cached roles
+      #   id: cached-ansible-roles
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: roles
+      #     key: ansible-roles-${{ hashFiles('**/requirements.yaml') }}
       - name: Install Ansible collections and roles
+        if: steps.cached-ansible-collections.outputs.cache-hit != 'true'
+        # if: |
+        #   steps.cached-ansible-collections.outputs.cache-hit != 'true' ||
+        #   steps.cached-ansible-roles.outputs.cache-hit != 'true'
         run: poetry run ansible-galaxy install -r requirements.yaml
       - name: Molecule test
         run: poetry run molecule test --all

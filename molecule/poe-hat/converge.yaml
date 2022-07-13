@@ -2,3 +2,5 @@
   hosts: all
 
 - ansible.builtin.import_playbook: ../../playbooks/enable-poe-hat.yaml
+  vars:
+    reboot: false
